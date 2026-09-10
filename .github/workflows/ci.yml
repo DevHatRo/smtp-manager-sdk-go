@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+
+  unit-test:
+    name: Unit Tests (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22", "1.25"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Test
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-go${{ matrix.go }}
+          path: coverage.out
+
+  # Integration tests send real mail through a real SMTP Manager instance, so
+  # they run only when triggered by hand (Actions > CI > Run workflow) with the
+  # repository secrets below configured; the test itself skips otherwise.
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Integration tests
+        run: go test -race -tags=integration -v -timeout 300s ./...
+        env:
+          SMTP_MANAGER_BASE_URL: ${{ secrets.SMTP_MANAGER_BASE_URL }}
+          SMTP_MANAGER_API_KEY: ${{ secrets.SMTP_MANAGER_API_KEY }}
+          SMTP_MANAGER_FROM: ${{ secrets.SMTP_MANAGER_FROM }}
+          SMTP_MANAGER_TO: ${{ secrets.SMTP_MANAGER_TO }}
