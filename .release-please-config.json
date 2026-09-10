@@ -4,7 +4,10 @@
     ".": {
       "release-type": "go",
       "component": "smtp-manager-sdk-go",
-      "extra-files": ["client.go"]
+      "extra-files": [
+        "client.go"
+      ],
+      "initial-version": "0.1.0"
     }
   },
   "bump-minor-pre-major": true,
