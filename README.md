@@ -9,7 +9,7 @@ policy for rate limits and dial failures.
 
 **Repository:** [github.com/DevHatRo/smtp-manager-sdk-go](https://github.com/DevHatRo/smtp-manager-sdk-go)
 
-- Standard library only (Go 1.22+)
+- Standard library only (Go 1.27+)
 - `context.Context` on every call, per-attempt timeout, concurrent-safe client
 - Typed `*Error` with `Code`, HTTP status, `RequestID`, per-field validation messages and `Retry-After`
 - Retries on `429 Too Many Requests` (honouring `Retry-After`) and on dial errors, never on ambiguous failures
